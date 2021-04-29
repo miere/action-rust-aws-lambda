@@ -1,0 +1,19 @@
+name: 'Rust AWS Lambda'
+description: 'Generates AWS Lambda compatible packages for all your Rust binaries'
+branding:
+  icon: 'package'  
+  color: 'orange'
+
+inputs:
+  source-dir:
+    description: 'The relative path to the folder where Cargo.toml is placed'
+    required: true
+    default: '.'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.source-dir }}
+  env:
+    PROFILE: "release"
+    PACKAGE: "true"
