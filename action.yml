@@ -9,9 +9,10 @@ inputs:
     description: 'The relative path to the folder where Cargo.toml is placed'
     required: true
     default: '.'
+
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: 'docker://miere/action-rust-aws-lambda:1.51.0'
   args:
     - ${{ inputs.source-dir }}
   env:
