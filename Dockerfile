@@ -1,13 +1,14 @@
-# Deeply inspired on (if not a cheeky copy of) softprops/lambda-rust
-# This image was adapted to work with GitHub Actions workflow, it
-# might eventually be useful for standalone use as well.
+# Deeply inspired on softprops/lambda-rust Docker image, but was adapted to work
+# with GitHub Actions workflow. Although it generates MUSL images by default, it is
+# based on Ubuntu for convenience.
+FROM messense/rust-musl-cross:x86_64-musl as BUILDER
 
-FROM lambci/lambda:build-provided.al2
+ARG RUST_VERSION=1.52.0
 
-ARG RUST_VERSION=1.51.0
-RUN yum install -y jq openssl-devel
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-    | CARGO_HOME=/cargo RUSTUP_HOME=/rustup sh -s -- -y --profile minimal --default-toolchain $RUST_VERSION
+RUN apt-get update -y \
+ && apt-get install -y ca-certificates zip jq \
+ && mkdir -p /github/workspace \
+ && rustup default ${RUST_VERSION} && rustup target add x86_64-unknown-linux-musl
 
 VOLUME ["/github/workspace", "/github/home", "/github/file_commands"]
 WORKDIR /github/workspace

@@ -12,7 +12,7 @@ inputs:
 
 runs:
   using: 'docker'
-  image: 'docker://miere/action-rust-aws-lambda:1.51.0'
+  image: 'docker://miere/action-rust-aws-lambda:1.52.0'
   args:
     - ${{ inputs.source-dir }}
   env:

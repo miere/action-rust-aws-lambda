@@ -1,8 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 # build and pack a rust lambda library
 # https://aws.amazon.com/blogs/opensource/rust-runtime-for-aws-lambda/
+#
+# Acknowledgement: this script was inspired by, and still almost identical to,
+# softprops/lambda-rust's script with the same name.
 
-SOURCE_DIR=${1:-.}; shift
+SOURCE_DIR=${1:-.}
 cd $SOURCE_DIR
 
 HOOKS_DIR="$PWD/.lambda-rust"
@@ -10,13 +13,10 @@ INSTALL_HOOK="install"
 BUILD_HOOK="build"
 PACKAGE_HOOK="package"
 
-set -eo pipefail
 mkdir -p target/lambda
 export PROFILE=${PROFILE:-release}
 export PACKAGE=${PACKAGE:-true}
 export DEBUGINFO=${DEBUGINFO}
-export CARGO_HOME="/cargo"
-export RUSTUP_HOME="/rustup"
 export CARGO_FLAGS="--target x86_64-unknown-linux-musl"
 
 # cargo uses different names for target
@@ -34,8 +34,7 @@ export CARGO_TARGET_DIR=$PWD/target/lambda
         echo "Install hook ran successfully"
     fi
 
-    # source cargo
-    . $CARGO_HOME/env
+    rustup show
 
     CARGO_BIN_ARG="" && [[ -n "$BIN" ]] && CARGO_BIN_ARG="--bin ${BIN}"
 
@@ -82,7 +81,7 @@ function package() {
 
 cd "${CARGO_TARGET_DIR}/x86_64-unknown-linux-musl/${TARGET_PROFILE}"
 (
-    . $CARGO_HOME/env
+    # . $CARGO_HOME/env
     if [ -z "$BIN" ]; then
         IFS=$'\n'
         for executable in $(cargo metadata --no-deps --format-version=1 | jq -r '.packages[] | .targets[] | select(.kind[] | contains("bin")) | .name'); do
@@ -97,4 +96,3 @@ cd "${CARGO_TARGET_DIR}/x86_64-unknown-linux-musl/${TARGET_PROFILE}"
     echo "Finished"
 
 ) 1>&2
-
