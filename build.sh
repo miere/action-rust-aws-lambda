@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # build and pack a rust lambda library
 # https://aws.amazon.com/blogs/opensource/rust-runtime-for-aws-lambda/
 
@@ -17,6 +17,7 @@ export PACKAGE=${PACKAGE:-true}
 export DEBUGINFO=${DEBUGINFO}
 export CARGO_HOME="/cargo"
 export RUSTUP_HOME="/rustup"
+export CARGO_FLAGS="--target x86_64-unknown-linux-musl"
 
 # cargo uses different names for target
 # of its build profiles
@@ -61,11 +62,13 @@ function package() {
         objcopy --strip-debug --strip-unneeded "$file"
         objcopy --add-gnu-debuglink="$file.debug" "$file"
     fi
-    rm "$file.zip" > 2&>/dev/null || true
-    rm -r "${OUTPUT_FOLDER}" > 2&>/dev/null || true
+
+    echo "Generating $file.zip..."
+    rm -f "$file.zip"
+    rm -fr "${OUTPUT_FOLDER}"
     mkdir -p "${OUTPUT_FOLDER}"
     cp "${file}" "${OUTPUT_FOLDER}/bootstrap"
-    cp "${file}.debug" "${OUTPUT_FOLDER}/bootstrap.debug" > 2&>/dev/null || true
+    cp "${file}.debug" "${OUTPUT_FOLDER}/bootstrap.debug"
 
     if [[ "$PACKAGE" != "false" ]]; then
         zip -j "$file.zip" "${OUTPUT_FOLDER}/bootstrap"
@@ -77,7 +80,7 @@ function package() {
     fi
 }
 
-cd "${CARGO_TARGET_DIR}/${TARGET_PROFILE}"
+cd "${CARGO_TARGET_DIR}/x86_64-unknown-linux-musl/${TARGET_PROFILE}"
 (
     . $CARGO_HOME/env
     if [ -z "$BIN" ]; then
@@ -88,6 +91,10 @@ cd "${CARGO_TARGET_DIR}/${TARGET_PROFILE}"
     else
         package "$BIN"
     fi
+
+    echo "Moving zip packages to ${CARGO_TARGET_DIR}..."
+    mv *.zip ${CARGO_TARGET_DIR}
+    echo "Finished"
 
 ) 1>&2
 
